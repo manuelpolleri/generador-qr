@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENERADOR DE QR ONLINE</title>
+    <!-- Librería para generar la matriz de datos del QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        body {
+            background-color: #0d0d0d;
+            color: #b0b0b0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 440px;
+            margin: auto 0;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.4rem;
+            color: #ffffff;
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: #ff6600; /* Naranja en subtítulo */
+            font-weight: bold;
+        }
+        .box {
+            background-color: #1a1a1a;
+            /* Borde biselado clásico de los 2000 */
+            border-top: 2px solid #444;
+            border-left: 2px solid #444;
+            border-right: 2px solid #050505;
+            border-bottom: 2px solid #050505;
+            padding: 1.5rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        label.input-label {
+            font-size: 0.8rem;
+            color: #ffffff; /* Naranja en etiquetas */
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.6rem;
+            background-color: #000000;
+            color: #ffffff;
+            /* Borde hundido clásico para inputs */
+            border-top: 2px solid #050505;
+            border-left: 2px solid #050505;
+            border-right: 2px solid #444;
+            border-bottom: 2px solid #444;
+            font-size: 0.95rem;
+            outline: none;
+            border-radius: 0;
+        }
+        input[type="text"]:focus {
+            background-color: #080808;
+            border-color: #ff6600; /* Enfoque en naranja */
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+        fieldset {
+            border: 1px solid #333;
+            padding: 0.6rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        legend {
+            font-size: 0.75rem;
+            color: #888;
+            padding: 0 0.3rem;
+            text-transform: uppercase;
+        }
+        
+        /* Estilos personalizados para los selectores (antiguos e inequívocos) */
+        .radio-label {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+            color: #555555; /* Desactivado por defecto */
+            transition: color 0.1s;
+        }
+        /* El input nativo queda oculto para hacerlo retro pero accesible */
+        .radio-label input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background-color: #000;
+            border: 1.5px solid #444;
+            margin: 0;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+        }
+        /* Cuando el radio está chequeado (Activo) */
+        .radio-label input[type="radio"]:checked {
+            border-color: #ff6600;
+        }
+        /* El puntito interno */
+        .radio-label input[type="radio"]:checked::before {
+            content: "";
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            top: 2.5px;
+            left: 2.5px;
+            background-color: #ff6600;
+        }
+        /* Texto cambia de color si está seleccionado */
+        .radio-label:has(input[type="radio"]:checked) {
+            color: #ffffff; /* Texto blanco si está activo */
+            font-weight: bold;
+        }
+        .radio-label:has(input[type="radio"]:checked) input[type="radio"] {
+            box-shadow: 0 0 4px rgba(255, 102, 0, 0.4);
+        }
+
+        #qr-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+            margin-top: 0.3rem;
+            padding-top: 1.2rem;
+            border-top: 1px dashed #333;
+        }
+        .canvas-wrapper {
+            padding: 10px;
+            border-top: 2px solid #050505;
+            border-left: 2px solid #050505;
+            border-right: 2px solid #444;
+            border-bottom: 2px solid #444;
+            /* Cuadrícula para transparencia */
+            background-color: #2a2a2a;
+            background-image: 
+                linear-gradient(45deg, #1f1f1f 25%, transparent 25%), 
+                linear-gradient(-45deg, #1f1f1f 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #1f1f1f 75%), 
+                linear-gradient(-45deg, transparent 75%, #1f1f1f 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 260px;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            image-rendering: pixelated;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2b2b2b;
+            color: #ff6600; /* Texto de acción en Naranja */
+            /* Botón clásico con relieve */
+            border-top: 2px solid #666;
+            border-left: 2px solid #666;
+            border-right: 2px solid #050505;
+            border-bottom: 2px solid #050505;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 0;
+        }
+        button:hover {
+            background-color: #363636;
+            color: #ff8533;
+        }
+        button:active {
+            /* Efecto de botón hundido al hacer clic */
+            border-top: 2px solid #050505;
+            border-left: 2px solid #050505;
+            border-right: 2px solid #666;
+            border-bottom: 2px solid #666;
+            padding-top: 0.8rem;
+            padding-bottom: 0.7rem;
+        }
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            max-width: 440px;
+            font-size: 0.72rem;
+            color: #555;
+            line-height: 1.5;
+        }
+        footer a {
+            color: #888;
+            text-decoration: underline;
+        }
+        footer a:hover {
+            color: #ff6600; /* Enlace en naranja al pasar el cursor */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <header>
+            <h1>GENERADOR DE QR ONLINE</h1>
+            <p class="subtitle">Gratuito. Tuyo. Para siempre.</p>
+        </header>
+
+        <div class="box">
+            <div class="field-group">
+                <label class="input-label" for="link-input">URL / TEXTO:</label>
+                <input type="text" id="link-input" placeholder="https://..." autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="options-grid">
+                <fieldset>
+                    <legend>Color del QR</legend>
+                    <label class="radio-label">
+                        <input type="radio" name="qr-color" value="black" checked> Negro
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="qr-color" value="white"> Blanco
+                    </label>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Fondo</legend>
+                    <label class="radio-label">
+                        <input type="radio" name="qr-bg" value="solid" checked> Con fondo
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="qr-bg" value="transparent"> Sin fondo
+                    </label>
+                </fieldset>
+            </div>
+
+            <div id="qr-container">
+                <div class="canvas-wrapper">
+                    <canvas id="qr-canvas" width="1000" height="1000"></canvas>
+                </div>
+                <button id="download-btn">[ DESCARGAR .PNG ]</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            Esta página no rastrea ni almacena ningún link o código generado. Todo se procesa localmente en tu navegador y la imagen resultante te pertenece por completo sin fecha de vencimiento. El código es libre y está abierto para quien quiera revisarlo o editarlo en <a href="https://github.com/tu-usuario/tu-repo" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+    </footer>
+
+    <script>
+        const input = document.getElementById('link-input');
+        const qrContainer = document.getElementById('qr-container');
+        const canvas = document.getElementById('qr-canvas');
+        const ctx = canvas.getContext('2d');
+        const downloadBtn = document.getElementById('download-btn');
+        const colorRadios = document.querySelectorAll('input[name="qr-color"]');
+        const bgRadios = document.querySelectorAll('input[name="qr-bg"]');
+
+        function renderQR() {
+            const text = input.value.trim();
+            if (!text) {
+                qrContainer.style.display = 'none';
+                return;
+            }
+
+            const qrColor = document.querySelector('input[name="qr-color"]:checked').value;
+            const qrBg = document.querySelector('input[name="qr-bg"]:checked').value;
+
+            try {
+                // Tipo 0 detecta el tamaño automáticamente; 'H' = máxima corrección de errores
+                const qr = qrcode(0, 'H');
+                qr.addData(text);
+                qr.make();
+
+                const moduleCount = qr.getModuleCount();
+                const margin = 2; // Margen alrededor del código
+                const totalModules = moduleCount + margin * 2;
+                
+                // Ajustamos el tamaño del canvas para que los píxeles den una división exacta
+                const scale = Math.floor(1000 / totalModules);
+                const size = totalModules * scale;
+                
+                canvas.width = size;
+                canvas.height = size;
+
+                // 1. Limpiamos el lienzo (queda 100% transparente por defecto)
+                ctx.clearRect(0, 0, size, size);
+
+                // 2. Si eligió "Con fondo", pintamos el fondo opuesto al color del QR
+                if (qrBg === 'solid') {
+                    ctx.fillStyle = (qrColor === 'black') ? '#ffffff' : '#000000';
+                    ctx.fillRect(0, 0, size, size);
+                }
+
+                // 3. Pintamos los módulos del QR
+                ctx.fillStyle = (qrColor === 'black') ? '#000000' : '#ffffff';
+                for (let row = 0; row < moduleCount; row++) {
+                    for (let col = 0; col < moduleCount; col++) {
+                        if (qr.isDark(row, col)) {
+                            ctx.fillRect(
+                                (col + margin) * scale,
+                                (row + margin) * scale,
+                                scale,
+                                scale
+                            );
+                        }
+                    }
+                }
+
+                qrContainer.style.display = 'flex';
+            } catch (e) {
+                console.error("Error generando el QR:", e);
+            }
+        }
+
+        // Eventos para actualizar en vivo al escribir o cambiar las opciones
+        input.addEventListener('input', renderQR);
+        colorRadios.forEach(radio => radio.addEventListener('change', renderQR));
+        bgRadios.forEach(radio => radio.addEventListener('change', renderQR));
+
+        // Descarga del archivo con nombre descriptivo según las opciones elegidas
+        downloadBtn.addEventListener('click', () => {
+            const qrColor = document.querySelector('input[name="qr-color"]:checked').value === 'black' ? 'negro' : 'blanco';
+            const qrBg = document.querySelector('input[name="qr-bg"]:checked').value === 'solid' ? 'con-fondo' : 'sin-fondo';
+            
+            const link = document.createElement('a');
+            link.download = `qr-${qrColor}-${qrBg}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+
+</body>
+</html>
